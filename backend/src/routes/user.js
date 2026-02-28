@@ -11,4 +11,4 @@ router.get("/adminDashboard", verifyToken, verifyAdmin, adminDashboard);
 router.post(
   "/uploadMedia",verifyToken,verifyAdmin, upload.single("image"),uploadMedia
 );
-module.exports=router;  
+module.exports=router;    

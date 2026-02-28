@@ -28,7 +28,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const ImageKit = require("imagekit");
 const multer = require("multer");
-
+const Media=require("../models/media")
 
 const registerUser = async (req, res) => {
   try {
@@ -197,8 +197,8 @@ const imagekit = new ImageKit({
 });
 const uploadMedia = async (req, res) => {
   try {
-    console.log("Content-Type:", req.headers["content-type"]);
-console.log("File received:", req.file);
+    const { title, description } = req.body;
+
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded" });
     }
@@ -208,21 +208,26 @@ console.log("File received:", req.file);
       fileName: req.file.originalname,
     });
 
+    const savedMedia = await Media.create({
+      imageUrl: response.url,
+      title,
+      description,
+      uploadedBy: req.user.id
+    });
+
     res.status(200).json({
       message: "Upload successful",
-      url: response.url
+      media: savedMedia
     });
 
   } catch (err) {
-    console.error(err);
+    console.error("UPLOAD ERROR:", err); 
     res.status(500).json({ message: "Upload failed" });
+ 
   }
 };
-
-
-
   
 module.exports = { registerUser ,loginUser,logoutUser, adminDashboard,
   verifyToken,
-  verifyAdmin,upload,uploadMedia
+  verifyAdmin,upload,uploadMedia,
 };   
