@@ -1,14 +1,46 @@
-const express=require("express");
-const router=express.Router();
-const {registerUser,loginUser,logoutUser,adminDashboard,
-  verifyToken,verifyAdmin,uploadMedia,upload,}=require("../controllers/user");
+const express = require("express");
+const router = express.Router();
 
-router.post("/registerUser",registerUser);
-router.post("/loginUser",loginUser);
-router.post("/logoutUser",logoutUser);
+const {
+  registerUser,
+  loginUser,
+  verifyToken,
+  verifyAdmin,
+  upload,
+  uploadMedia,
+  getAllMedia,
+  updateMedia,
+  deleteMedia
+} = require("../controllers/user");   // ⚠️ path check karo
 
-router.get("/adminDashboard", verifyToken, verifyAdmin, adminDashboard);
+// AUTH
+router.post("/register", registerUser);
+router.post("/login", loginUser);
+
+// MEDIA ROUTES
+router.get("/allMedia", getAllMedia);
+
 router.post(
-  "/uploadMedia",verifyToken,verifyAdmin, upload.single("image"),uploadMedia
+  "/uploadMedia",
+  verifyToken,
+  verifyAdmin,
+  upload.single("image"),
+  uploadMedia
 );
-module.exports=router;    
+
+router.put(
+  "/updateMedia/:id",
+  verifyToken,
+  verifyAdmin,
+  upload.single("image"),
+  updateMedia
+);
+
+router.delete(
+  "/deleteMedia/:id",
+  verifyToken,
+  verifyAdmin,
+  deleteMedia
+);
+
+module.exports = router;

@@ -1,19 +1,76 @@
+
+
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import "../styles/Login.css";
 
 export default function Login() {
-  const [isLogin, setIsLogin] = useState(true); // toggle between login & create account
+  const [isLogin, setIsLogin] = useState(true);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     const formData = {
       name: e.target.name?.value,
       email: e.target.email.value,
       password: e.target.password.value,
     };
-    console.log(isLogin ? "Login Data:" : "Signup Data:", formData);
-    alert(`${isLogin ? "Login" : "Account Created"} Successfully!`);
-    e.target.reset();
+
+    try {
+      if (isLogin) {
+        // 🔐 LOGIN API
+        const res = await axios.post(
+          "http://localhost:5000/api/user/login",
+          {
+            email: formData.email,
+            password: formData.password,
+          }
+        );
+
+        console.log("LOGIN RESPONSE:", res.data);
+
+        // ✅ Save token & user
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+
+
+        // 🔥 SAFE ROLE CHECK
+        if (res.data.user && res.data.user.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
+
+      } else {
+        // 📝 REGISTER API
+        const res = await axios.post(
+          "http://localhost:5000/api/user/register",
+          formData
+        );
+
+       
+
+        // 🔥 After signup → go to home
+        alert("Signup Successful ✅");
+
+// Switch to login view instead of navigating
+setIsLogin(true);
+
+// OR if you want direct home:
+navigate("/", { replace: true });
+
+        // OR if you want signup ke baad login page hi aaye:
+        // setIsLogin(true);
+      }
+
+      e.target.reset();
+
+    } catch (err) {
+      console.error("AUTH ERROR:", err.response?.data);
+      alert(err.response?.data?.message || "Something went wrong ❌");
+    }
   };
 
   return (
@@ -37,6 +94,7 @@ export default function Login() {
             placeholder="Your Email"
             required
           />
+
           <input
             type="password"
             name="password"
@@ -44,11 +102,15 @@ export default function Login() {
             required
           />
 
-          <button type="submit">{isLogin ? "Login" : "Sign Up"}</button>
+          <button type="submit">
+            {isLogin ? "Login" : "Sign Up"}
+          </button>
         </form>
 
         <p className="toggle-text">
-          {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
+          {isLogin
+            ? "Don't have an account?"
+            : "Already have an account?"}{" "}
           <span onClick={() => setIsLogin(!isLogin)}>
             {isLogin ? "Create Account" : "Login"}
           </span>

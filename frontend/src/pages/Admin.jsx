@@ -1,4 +1,8 @@
-/*import { useState } from "react";
+
+
+
+  import { useState, useEffect } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "../styles/Admin.css";
 
@@ -8,210 +12,131 @@ export default function AdminPanel() {
   const [services, setServices] = useState([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [image, setImage] = useState(null);
-  const [editIndex, setEditIndex] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [editId, setEditId] = useState(null);
 
-  // Logout
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    navigate("/login");
-  };
+  const token = localStorage.getItem("token");
 
-  // Image upload
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    setImage(URL.createObjectURL(file));
-  };
-
-  // Add or Update
-  const handleSubmit = () => {
-    const newService = { title, description, image };
-
-    if (editIndex !== null) {
-      const updated = [...services];
-      updated[editIndex] = newService;
-      setServices(updated);
-      setEditIndex(null);
-    } else {
-      setServices([...services, newService]);
+  // 🔥 Fetch All Services
+  const fetchServices = async () => {
+    try {
+      const res = await axios.get(
+        "http://localhost:5000/api/user/allMedia"
+      );
+      setServices(res.data);
+    } catch (err) {
+      console.error("Fetch Error:", err);
     }
-
-    setTitle("");
-    setDescription("");
-    setImage(null);
   };
 
-  // Delete
-  const handleDelete = (index) => {
-    const filtered = services.filter((_, i) => i !== index);
-    setServices(filtered);
-  };
-
-  // Edit
-  const handleEdit = (index) => {
-    const item = services[index];
-    setTitle(item.title);
-    setDescription(item.description);
-    setImage(item.image);
-    setEditIndex(index);
-  };
-
-  return (
-    <div className="admin-container">
-      
-      <div className="admin-header">
-        <h2 className="admin-title">Admin Dashboard</h2>
-        <button className="logout-btn" onClick={handleLogout}>
-          Logout
-        </button>
-      </div>
-
-      <div className="admin-form">
-        <input
-          type="text"
-          placeholder="Service Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-
-        <textarea
-          placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-
-        <input type="file" onChange={handleImageChange} />
-
-        <button onClick={handleSubmit}>
-          {editIndex !== null ? "Update Service" : "Add Service"}
-        </button>
-      </div>
-
-      <div className="services-grid">
-        {services.map((item, index) => (
-          <div key={index} className="service-card-admin">
-            {item.image && <img src={item.image} alt="" />}
-
-            <div className="content">
-              <h4>{item.title}</h4>
-              <p>{item.description}</p>
-
-              <div className="card-buttons">
-                <button
-                  className="edit-btn"
-                  onClick={() => handleEdit(index)}
-                >
-                  Edit
-                </button>
-
-                <button
-                  className="delete-btn"
-                  onClick={() => handleDelete(index)}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-    </div>
-  );
-} 
-  */
-
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import "../styles/Admin.css";
-
-export default function AdminPanel() {
-  const navigate = useNavigate();
-
-  const [services, setServices] = useState([]);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [image, setImage] = useState(null);
-  const [editIndex, setEditIndex] = useState(null);
-
-  // 🔹 Load saved services on page load
   useEffect(() => {
-    const savedServices = JSON.parse(localStorage.getItem("services"));
-    if (savedServices) {
-      setServices(savedServices);
-    }
+    fetchServices();
   }, []);
 
-  // 🔹 Logout
+  // 🔐 Logout
   const handleLogout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("role");
     navigate("/login");
   };
 
-  // 🔹 Image upload + preview
+  // 📸 File Select
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImage(URL.createObjectURL(file));
-    }
+    setImageFile(e.target.files[0]);
   };
 
-  // 🔹 Add or Update Service
-  const handleSubmit = () => {
-    if (!title || !description) {
+  // 🚀 Add / Update Service
+  const handleSubmit = async () => {
+    if (!title || !description || (!imageFile && !editId)) {
       alert("Please fill all fields");
       return;
     }
 
-    let updatedServices;
-    const newService = { title, description, image };
+    try {
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("description", description);
 
-    if (editIndex !== null) {
-      updatedServices = [...services];
-      updatedServices[editIndex] = newService;
-      setEditIndex(null);
-    } else {
-      updatedServices = [...services, newService];
+      if (imageFile) {
+        formData.append("image", imageFile); // ⚠️ MUST match upload.single("image")
+      }
+
+      if (editId) {
+        // UPDATE
+        await axios.put(
+          `http://localhost:5000/api/user/updateMedia/${editId}`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+        alert("Service Updated ✅");
+      } else {
+        // ADD
+        await axios.post(
+          "http://localhost:5000/api/user/uploadMedia",
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+        alert("Service Added ✅");
+      }
+
+      // Reset
+      setTitle("");
+      setDescription("");
+      setImageFile(null);
+      setEditId(null);
+
+      fetchServices();
+
+    } catch (err) {
+      console.log("STATUS:", err.response?.status);
+      console.log("DATA:", err.response?.data);
+      alert(err.response?.data?.message || "Operation failed ❌");
     }
-
-    setServices(updatedServices);
-    localStorage.setItem("services", JSON.stringify(updatedServices));
-
-    // Reset fields
-    setTitle("");
-    setDescription("");
-    setImage(null);
   };
 
-  // 🔹 Delete Service
-  const handleDelete = (index) => {
-    const filtered = services.filter((_, i) => i !== index);
-    setServices(filtered);
-    localStorage.setItem("services", JSON.stringify(filtered));
-  };
-
-  // 🔹 Edit Service
-  const handleEdit = (index) => {
-    const item = services[index];
+  // ✏️ Edit
+  const handleEdit = (item) => {
     setTitle(item.title);
     setDescription(item.description);
-    setImage(item.image);
-    setEditIndex(index);
+    setEditId(item._id);
+  };
+
+  // 🗑 Delete
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(
+        `http://localhost:5000/api/user/deleteMedia/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      alert("Deleted Successfully 🗑");
+      fetchServices();
+
+    } catch (err) {
+      alert("Delete failed ❌");
+    }
   };
 
   return (
     <div className="admin-container">
-      
+
       <div className="admin-header">
-        <h2 className="admin-title">Admin Dashboard</h2>
-        <button className="logout-btn" onClick={handleLogout}>
-          Logout
-        </button>
+        <h2>Admin Dashboard</h2>
+        <button onClick={handleLogout}>Logout</button>
       </div>
 
-      {/* Form Section */}
+      {/* FORM */}
       <div className="admin-form">
         <input
           type="text"
@@ -229,42 +154,32 @@ export default function AdminPanel() {
         <input type="file" onChange={handleImageChange} />
 
         <button onClick={handleSubmit}>
-          {editIndex !== null ? "Update Service" : "Add Service"}
+          {editId ? "Update Service" : "Add Service"}
         </button>
       </div>
 
-      {/* Services List */}
+      {/* SERVICES LIST */}
       <div className="services-grid">
-        {services.length === 0 ? (
-          <p>No services added yet.</p>
-        ) : (
-          services.map((item, index) => (
-            <div key={index} className="service-card-admin">
-              {item.image && <img src={item.image} alt="" />}
+        {services.map((item) => (
+          <div key={item._id} className="service-card-admin">
+            {item.imageUrl && (
+              <img src={item.imageUrl} alt={item.title} />
+            )}
 
-              <div className="content">
-                <h4>{item.title}</h4>
-                <p>{item.description}</p>
+            <h4>{item.title}</h4>
+            <p>{item.description}</p>
 
-                <div className="card-buttons">
-                  <button
-                    className="edit-btn"
-                    onClick={() => handleEdit(index)}
-                  >
-                    Edit
-                  </button>
+            <div>
+              <button onClick={() => handleEdit(item)}>
+                Edit
+              </button>
 
-                  <button
-                    className="delete-btn"
-                    onClick={() => handleDelete(index)}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
+              <button onClick={() => handleDelete(item._id)}>
+                Delete
+              </button>
             </div>
-          ))
-        )}
+          </div>
+        ))}
       </div>
 
     </div>
