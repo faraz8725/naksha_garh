@@ -1,0 +1,16 @@
+.services-section {
+  padding: 80px 40px;
+  background: #f9f9f9;
+  text-align: center;
+}
+
+.services-section h2 {
+  font-size: 32px;
+  margin-bottom: 40px;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 30px;
+}

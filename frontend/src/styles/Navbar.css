@@ -1,0 +1,47 @@
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 40px;
+  background: white;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.logo {
+  margin: 0;
+  font-weight: 600;
+}
+
+.nav-links {
+  display: flex;
+  gap: 25px;
+}
+
+.nav-links button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  transition: 0.3s;
+}
+
+.nav-links button:hover {
+  color: #f4b400;
+}
+
+.login-btn {
+  background: #f4b400;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.3s;
+}
+
+.login-btn:hover {
+  opacity: 0.85;
+}
