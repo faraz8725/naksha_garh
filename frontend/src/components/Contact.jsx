@@ -66,16 +66,28 @@ export default function Contact() {
       <div className="contact-container">
 
         <div className="contact-item">
-          <FaMapMarkerAlt className="contact-icon" />
-          <h4>Location</h4>
-          <p>Your City, Country</p>
-        </div>
+  <a
+    href="https://www.google.com/maps?q=26°51'11.1N 80°53'56.6E"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <FaMapMarkerAlt className="contact-icon" />
+    <h4>Location</h4>
+    <p>My Home Location</p>
+  </a>
+</div>
 
         <div className="contact-item">
-          <FaPhoneAlt className="contact-icon" />
-          <h4>Phone</h4>
-          <p>+91 123 456 7890</p>
-        </div>
+  <a
+    href="https://wa.me/917398434859?text=Hello%20I%20want%20to%20contact%20you"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <FaPhoneAlt className="contact-icon" />
+    <h4>WhatsApp</h4>
+    <p>+91 123 456 7890</p>
+  </a>
+</div>
 
         <div className="contact-item">
           <FaEnvelope className="contact-icon" />
